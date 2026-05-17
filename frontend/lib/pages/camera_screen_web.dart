@@ -6,8 +6,8 @@ import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:frontend/pages/app_sidebar.dart';
 import 'package:image/image.dart' as img;
+import 'package:frontend/const/api_config.dart';
 import 'package:frontend/provider/user_info.dart';
 import 'package:frontend/services/history_service.dart';
 import 'package:frontend/services/web_square_capture_stub.dart'
@@ -41,7 +41,7 @@ class _CameraScreenWebState extends State<CameraScreenWeb> {
   Color boxColor = Colors.black;
   bool _loading = false;
   bool _isCapturing = false;
-  bool _isCameraOn = true;
+  bool _isCameraOn = false;
   String? _permissionMessage;
   final List<String> _phraseBuffer = [];
   String? _lastAcceptedLabel;
@@ -52,7 +52,6 @@ class _CameraScreenWebState extends State<CameraScreenWeb> {
   void initState() {
     super.initState();
     _initTts();
-    _initCamera();
   }
 
   void _initTts() {
@@ -309,7 +308,7 @@ class _CameraScreenWebState extends State<CameraScreenWeb> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://127.0.0.1:5000/predict'),
+        Uri.parse(ApiConfig.predictUrl),
       );
       request.files.add(http.MultipartFile.fromBytes(
         'image',
@@ -374,6 +373,11 @@ class _CameraScreenWebState extends State<CameraScreenWeb> {
     await _flutterTts!.speak(translation);
   }
 
+  void _repeatPhrase() async {
+    if (_finalTranslation.isEmpty || _flutterTts == null) return;
+    await _flutterTts!.speak(_finalTranslation);
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -417,7 +421,6 @@ class _CameraScreenWebState extends State<CameraScreenWeb> {
     if (!_isCameraOn) {
       return Scaffold(
         backgroundColor: Colors.black,
-        endDrawer: const AppSidebar(),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -470,7 +473,7 @@ class _CameraScreenWebState extends State<CameraScreenWeb> {
                 : 'Press Start Recording';
 
     return Scaffold(
-      endDrawer: const AppSidebar(),
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
           Transform.scale(
@@ -587,16 +590,30 @@ class _CameraScreenWebState extends State<CameraScreenWeb> {
                         color: Colors.blue.withValues(alpha: 0.82),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(
-                        visiblePhrase,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              visiblePhrase,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          if (_finalTranslation.isNotEmpty)
+                            IconButton(
+                              onPressed: _repeatPhrase,
+                              icon: const Icon(Icons.volume_up,
+                                  color: Colors.white),
+                              tooltip: 'Hear phrase again',
+                            ),
+                        ],
                       ),
                     ),
                   ],
@@ -620,18 +637,7 @@ class _CameraScreenWebState extends State<CameraScreenWeb> {
               ),
             ),
           ),
-          Positioned(
-            top: 16,
-            right: 16,
-            child: SafeArea(
-              child: Builder(
-                builder: (context) => IconButton(
-                  onPressed: () => Scaffold.of(context).openEndDrawer(),
-                  icon: const Icon(Icons.menu, color: Colors.white, size: 30),
-                ),
-              ),
-            ),
-          ),
+          
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(

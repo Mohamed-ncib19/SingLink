@@ -51,18 +51,17 @@ Future<void> _initApp() async {
         ChangeNotifierProvider(
             create: (context) => ThemeNotifier(currentTheme)),
       ],
-      child: MyApp(theme: currentTheme),
+      child: const MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final ThemeData? theme;
-
-  const MyApp({Key? key, this.theme}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeNotifier>().getTheme;
     return MaterialApp(
       title: 'SignLink',
       theme: theme,

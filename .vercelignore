@@ -1,0 +1,18 @@
+# Ignore everything except frontend build output and API
+backend
+.git
+.github
+.gitignore
+.vscode
+.idea
+*.md
+test
+frontend/lib
+frontend/test
+frontend/android
+frontend/ios
+frontend/macos
+frontend/web
+frontend/assets
+frontend/pubspec.yaml
+frontend/analysis_options.yaml

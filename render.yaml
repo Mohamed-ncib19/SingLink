@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: signlink-api
+    runtime: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn backend.main:app --workers 1 --threads 2 --timeout 120
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
