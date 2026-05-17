@@ -1,0 +1,25 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'flutter_plugin_android_lifecycle:flutter_plugin_android_lifecycle:2.0.34'
+    }
+}
+
+rootProject.layout.buildDirectory = "../build"
+
+subprojects {
+    project.layout.buildDirectory = "${rootProject.layout.buildDirectory}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.layout.buildDirectory
+}
